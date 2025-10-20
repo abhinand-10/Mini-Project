@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GST Calculator & Fraud Detection</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/4a148a2491.js" crossorigin="anonymous"></script>
+  <style>
+    /* Your existing CSS styles remain the same */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        color: #2d3748;
+        background-color: #f7fafc;
+    }
+
+    nav {
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        padding: 1rem 1.5rem;
+    }
+
+    nav .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    nav a {
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease, transform 0.2s ease;
+    }
+
+    nav a:hover {
+        color: #3182ce;
+        transform: translateY(-2px);
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .card h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 0.5rem;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    label {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 0.25rem;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 1rem;
+        background-color: #f7fafc;
+        transition: border-color 0.3s ease;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #3182ce;
+        box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+
+    .row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .col {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    button, input[type="submit"] {
+        background-color: #3182ce;
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    button:hover, input[type="submit"]:hover {
+        background-color: #2b6cb0;
+    }
+
+    .btn-success {
+        background-color: #10b981;
+    }
+
+    .btn-success:hover {
+        background-color: #059669;
+    }
+
+    .btn-secondary {
+        background-color: #6b7280;
+    }
+
+    .btn-secondary:hover {
+        background-color: #4b5563;
+    }
+
+    .result, .fraud {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 6px;
+        background-color: #edf2f7;
+        font-size: 0.95rem;
+    }
+
+    .fraud.bad {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .fraud.good {
+        background-color: #e6fffa;
+        color: #1a4731;
+    }
+
+    .muted {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-bottom: 0.5rem;
+    }
+
+    .save-section {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 2px dashed #d1d5db;
+        border-radius: 6px;
+        background-color: #f9fafb;
+    }
+
+    .save-message {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .save-success {
+        background-color: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .save-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+
+    .login-prompt {
+        background-color: #fef3c7;
+        color: #92400e;
+        padding: 0.75rem;
+        border-radius: 6px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        nav .container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        nav .flex {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .row {
+            flex-direction: column;
+        }
+
+        .col {
+            min-width: 100%;
+        }
+
+        .actions {
+            flex-direction: column;
+        }
+    }
+  </style>
+</head>
+<body class="body">
+  <div>
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-lg py-4 px-6 md:px-10 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-2 text-2xl font-bold text-gray-800">
+                <i class="fas fa-chart-line text-indigo-600"></i>
+                <span>Tax-Vision</span>
+            </a>
+            <div class="flex space-x-6 md:space-x-8 items-center">
+                <a href="/index" class="nav-link text-gray-600 font-medium transition-transform duration-300">Home</a>
+                <a href="/gst" class="nav-link text-gray-600 font-medium transition-transform duration-300">GST Fraud</a>
+                <a href="/tds" class="nav-link text-gray-600 font-medium transition-transform duration-300">TDS Fraud</a>
+                <a href="/income_tax" class="nav-link text-gray-600 font-medium transition-transform duration-300">Income Tax</a>
+                <a href="/tax_prediction" class="nav-link text-gray-600 font-medium transition-transform duration-300">Tax Prediction</a>
+                {% if session.user_id %}
+                    <a href="/dashboard" class="nav-link text-indigo-600 font-medium">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <span class="text-gray-600">Hello, {{ session.username }}</span>
+                    <a href="/logout" class="nav-link text-gray-600 font-medium">Logout</a>
+                {% else %}
+                    <a href="/login" class="nav-link text-indigo-600 font-medium transition-transform duration-300">Login</a>
+                    <a href="/signup" class="nav-link text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-full transition-transform duration-300">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+  </div>
+  <div class="container">
+    <!-- GST Calculator -->
+    <section class="card">
+      <h3 style="margin:0 0 8px 0">GST Calculator</h3>
+      <form id="gst-form" onsubmit="return false;">
+        <label>Basic Price (₹)</label>
+        <input id="basic_price" type="number" step="0.01" required>
+        <label style="margin-top:8px">GST Rate (%)</label>
+        <input id="gst_rate" type="number" step="0.01" required>
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <label>CGST Rate (%)</label>
+            <input id="cgst_rate" readonly>
+          </div>
+          <div class="col">
+            <label>SGST Rate (%)</label>
+            <input id="sgst_rate" readonly>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="calc-btn">
+            <i class="fas fa-calculator"></i> Calculate GST
+          </button>
+        </div>
+      </form>
+      <div id="calc-result" class="result" style="display:none">
+        <p><strong>Basic:</strong> ₹<span id="out-basic"></span></p>
+        <p><strong>GST Amount:</strong> ₹<span id="out-gst"></span></p>
+        <p><strong>Net Price:</strong> ₹<span id="out-net"></span></p>
+        <p><strong>CGST:</strong> ₹<span id="out-cgst"></span> | <strong>SGST:</strong> ₹<span id="out-sgst"></span></p>
+        
+        <!-- Save Calculator Results Section -->
+        {% if session.user_id %}
+        <div class="save-section">
+          <p class="muted">Save this calculation to your profile?</p>
+          <div class="actions">
+            <button id="save-calc-btn" class="btn-success">
+              <i class="fas fa-save"></i> Save Calculation
+            </button>
+          </div>
+          <div id="save-calc-message" class="save-message" style="display:none"></div>
+        </div>
+        {% else %}
+        <div class="login-prompt">
+          <a href="/login" class="text-indigo-600 font-medium">Login</a> to save your calculations
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Fraud Detection -->
+    <section class="card">
+      <h3 style="margin:0 0 8px 0">GST Fraud Detection (ML)</h3>
+      <div class="muted">Fill the fields below (required fields marked). Derived ratios are computed automatically.</div>
+      <form id="fraud-form" method="POST" action="/detect_fraud" style="margin-top:10px;">
+        <label>Reported Turnover (₹) — required</label>
+        <input name="reported_turnover" type="number" step="0.01" required>
+        <label style="margin-top:8px">E-way Bill Total Value (₹) — required</label>
+        <input name="eway_total_value" type="number" step="0.01" required>
+        <div class="row">
+          <div class="col">
+            <label>Number of E-way Bills</label>
+            <input name="num_eway_bills" type="number" value="1">
+          </div>
+          <div class="col">
+            <label>Invoice Count</label>
+            <input name="invoice_count" type="number" value="1">
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <label>GST Paid (₹)</label>
+            <input name="gst_paid" type="number" step="0.01" value="0">
+          </div>
+          <div class="col">
+            <label>GST Rate Applied (%)</label>
+            <input name="gst_rate_applied" type="number" step="0.01" value="18">
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <label>Number of Suppliers</label>
+            <input name="num_suppliers" type="number" value="1">
+          </div>
+          <div class="col">
+            <label>Number of Customers</label>
+            <input name="num_customers" type="number" value="1">
+          </div>
+        </div>
+        <label style="margin-top:8px">Average Invoice Value (₹)</label>
+        <input name="avg_invoice_value" type="number" step="0.01" value="0">
+        <label style="margin-top:8px">GSTR1 vs GSTR3B Difference (₹)</label>
+        <input name="gstr1_vs_gstr3b_diff" type="number" step="0.01" value="0">
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <label>Sudden Turnover Jump (0 or 1)</label>
+            <select name="sudden_turnover_jump">
+              <option value="0">0 - No</option>
+              <option value="1">1 - Yes</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Registration Age (months)</label>
+            <input name="registration_age_months" type="number" value="12">
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit">
+            <i class="fas fa-search"></i> Run Fraud Check
+          </button>
+        </div>
+      </form>
+
+      <!-- Fraud Detection Results -->
+      {% if fraud_error %}
+        <div class="fraud bad" style="margin-top:12px">{{ fraud_error }}</div>
+      {% endif %}
+      {% if fraud_result %}
+        <div id="fraud-result" class="fraud {% if 'suspicious' in fraud_result|lower or 'fraud' in fraud_result|lower %}bad{% else %}good{% endif %}" style="margin-top:12px">
+          {{ fraud_result }}
+        </div>
+
+        <!-- Save Fraud Detection Results Section -->
+        {% if session.user_id and fraud_result %}
+        <div class="save-section">
+          <p class="muted">Save this fraud detection result to your profile?</p>
+          <div class="actions">
+            <button id="save-fraud-btn" class="btn-success">
+              <i class="fas fa-save"></i> Save Fraud Detection
+            </button>
+          </div>
+          <div id="save-fraud-message" class="save-message" style="display:none"></div>
+        </div>
+        {% elif not session.user_id and fraud_result %}
+        <div class="login-prompt">
+          <a href="/login" class="text-indigo-600 font-medium">Login</a> to save your fraud detection results
+        </div>
+        {% endif %}
+      {% endif %}
+    </section>
+  </div>
+
+  <script>
+    // GST calculator (client-side)
+    document.addEventListener('DOMContentLoaded', () => {
+      const calcBtn = document.getElementById('calc-btn');
+      const saveCalcBtn = document.getElementById('save-calc-btn');
+      const saveFraudBtn = document.getElementById('save-fraud-btn');
+      
+      let currentCalculation = null;
+      let currentFraudData = null;
+
+      // GST Calculation
+      calcBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const basic = parseFloat(document.getElementById('basic_price').value || 0);
+        const rate = parseFloat(document.getElementById('gst_rate').value || 0);
+        if (!basic || rate < 0) return;
+        
+        const gst = basic * (rate / 100);
+        const net = basic + gst;
+        const half = gst / 2;
+        
+        document.getElementById('out-basic').textContent = basic.toFixed(2);
+        document.getElementById('out-gst').textContent = gst.toFixed(2);
+        document.getElementById('out-net').textContent = net.toFixed(2);
+        document.getElementById('out-cgst').textContent = half.toFixed(2);
+        document.getElementById('out-sgst').textContent = half.toFixed(2);
+        
+        document.getElementById('cgst_rate').value = (rate / 2).toFixed(2);
+        document.getElementById('sgst_rate').value = (rate / 2).toFixed(2);
+        
+        document.getElementById('calc-result').style.display = 'block';
+        
+        // Store calculation data for saving
+        currentCalculation = {
+          basic_price: basic,
+          gst_rate: rate,
+          gst_amount: gst,
+          net_price: net,
+          cgst_amount: half,
+          sgst_amount: half
+        };
+      });
+
+      // Save GST Calculation
+      if (saveCalcBtn) {
+        saveCalcBtn.addEventListener('click', async () => {
+          if (!currentCalculation) {
+            showMessage('save-calc-message', 'Please perform a calculation first', 'error');
+            return;
+          }
+
+          try {
+            const response = await fetch('/save_calculation', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                type: 'gst_calculation',
+                input_data: {
+                  basic_price: currentCalculation.basic_price,
+                  gst_rate: currentCalculation.gst_rate
+                },
+                result: {
+                  gst_amount: currentCalculation.gst_amount,
+                  net_price: currentCalculation.net_price,
+                  cgst_amount: currentCalculation.cgst_amount,
+                  sgst_amount: currentCalculation.sgst_amount
+                }
+              })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+              showMessage('save-calc-message', '✓ Calculation saved to your dashboard!', 'success');
+            } else {
+              showMessage('save-calc-message', '✗ Failed to save calculation', 'error');
+            }
+          } catch (error) {
+            showMessage('save-calc-message', '✗ Error saving calculation', 'error');
+          }
+        });
+      }
+
+      // Save Fraud Detection Result
+      if (saveFraudBtn) {
+        saveFraudBtn.addEventListener('click', async () => {
+          const fraudResult = document.getElementById('fraud-result');
+          if (!fraudResult) {
+            showMessage('save-fraud-message', 'Please run a fraud detection first', 'error');
+            return;
+          }
+
+          try {
+            // Get form data for fraud detection
+            const formData = new FormData(document.getElementById('fraud-form'));
+            const inputData = {};
+            for (let [key, value] of formData.entries()) {
+              inputData[key] = value;
+            }
+
+            const response = await fetch('/save_calculation', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                type: 'gst_fraud_detection',
+                input_data: inputData,
+                result: {
+                  fraud_prediction: fraudResult.textContent,
+                  risk_level: fraudResult.classList.contains('bad') ? 'High Risk' : 'Low Risk'
+                }
+              })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+              showMessage('save-fraud-message', '✓ Fraud detection saved to your dashboard!', 'success');
+            } else {
+              showMessage('save-fraud-message', '✗ Failed to save fraud detection', 'error');
+            }
+          } catch (error) {
+            showMessage('save-fraud-message', '✗ Error saving fraud detection', 'error');
+          }
+        });
+      }
+
+      // Helper function to show messages
+      function showMessage(elementId, message, type) {
+        const element = document.getElementById(elementId);
+        element.textContent = message;
+        element.style.display = 'block';
+        element.className = `save-message save-${type}`;
+        
+        // Hide message after 5 seconds
+        setTimeout(() => {
+          element.style.display = 'none';
+        }, 5000);
+      }
+    });
+  </script>
+</body>
+</html>
