@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDS & Fraud Detection Dashboard</title>
+    <!-- Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/4a148a2491.js" crossorigin="anonymous"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for clean UI and responsive inputs */
+        input:not([type="checkbox"]):focus, select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+            outline: none;
+        }
+        .risk-low {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+            border: 2px solid #34d399; /* green-400 */
+        }
+        .risk-medium {
+            background-color: #fef3c7; /* yellow-100 */
+            color: #92400e; /* yellow-800 */
+            border: 2px solid #fbbf24; /* yellow-400 */
+        }
+        .risk-high {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+            border: 2px solid #f87171; /* red-400 */
+        }
+        .save-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 2px dashed #d1d5db;
+            border-radius: 6px;
+            background-color: #f9fafb;
+        }
+        .save-message {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .save-success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .save-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .login-prompt {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 0.75rem;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+    
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" class="flex items-center text-blue-600 font-bold text-lg rounded-full px-3 py-1 bg-blue-100 transition-transform transform hover:scale-105">
+                <i class="fas fa-chart-line mr-2"></i>
+                <span>Tax-Vision</span>
+            </a>
+            <div class="flex space-x-4 items-center">
+                <a href="/gst" class="text-gray-600 hover:text-blue-600 transition-colors">GST Fraud</a>
+                <a href="/tds" class="text-blue-600 font-bold border-b-2 border-blue-600 pb-1">TDS Fraud</a>
+                <a href="/income_tax" class="text-gray-600 hover:text-blue-600 transition-colors">Income Tax</a>
+                <a href="/tax_prediction" class="text-gray-600 hover:text-blue-600 transition-colors">Tax Prediction</a>
+                {% if session.user_id %}
+                    <a href="/dashboard" class="text-blue-600 font-medium flex items-center">
+                        <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
+                    </a>
+                    <span class="text-gray-600">Hello, {{ session.username }}</span>
+                    <a href="/logout" class="text-gray-600 hover:text-blue-600 transition-colors">Logout</a>
+                {% else %}
+                    <a href="/login" class="text-gray-600 hover:text-blue-600 transition-colors">Login</a>
+                    <a href="/signup" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8 flex-grow">
+        <!-- Main Form Card -->
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-10 border border-gray-100">
+            <div class="flex flex-col items-center text-center mb-8 border-b pb-4">
+                <div class="flex items-center space-x-3 text-blue-700">
+                    <i class="fas fa-search-dollar text-4xl"></i>
+                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">TDS Management & Fraud Check</h1>
+                </div>
+                <p class="text-gray-500 mt-2 text-md">AI-Powered tool for quick TDS calculation and immediate transaction risk assessment.</p>
+            </div>
+
+            <!-- TDS Calculator Section -->
+            <div class="mb-10 border-b pb-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center"><i class="fas fa-calculator mr-3 text-blue-600"></i> Quick TDS Calculation</h2>
+                <form id="tdsCalculatorForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="recipient_type" class="block text-sm font-medium text-gray-700">Recipient Type</label>
+                            <select id="recipient_type" name="recipient_type" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white">
+                                <option value="">Select Recipient Type</option>
+                                <option value="Individual">Individual/HUF</option>
+                                <option value="Company">Company</option>
+                                <option value="Partnership Firm">Partnership Firm/LLP</option>
+                                <option value="Others">Others (AOP/BOI/Trust)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="nature_of_payment" class="block text-sm font-medium text-gray-700">TDS Section (Nature of Payment)</label>
+                            <select id="nature_of_payment" name="nature_of_payment" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white">
+                                <option value="">Select Section</option>
+                                <option value="194J">Professional/Technical Services (194J)</option>
+                                <option value="194C">Payment to Contractors (194C)</option>
+                                <option value="194I">Rent (194I)</option>
+                                <option value="194A">Interest Other than Securities (194A)</option>
+                                <option value="194H">Commission/Brokerage (194H)</option>
+                                <option value="194">Dividend (194)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="calc_payment_amount" class="block text-sm font-medium text-gray-700">Payment Amount (₹)</label>
+                            <input type="number" id="calc_payment_amount" name="payment_amount" step="0.01" required placeholder="e.g., 50000.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-start pt-2">
+                        <button type="button" id="calculateBtn" class="bg-blue-600 text-white px-8 py-3 rounded-full shadow-xl hover:bg-blue-700 transition-all font-semibold flex items-center transform hover:scale-105">
+                            <i class="fas fa-percent mr-2"></i> Calculate Expected TDS
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="calcResults" class="hidden mt-6 p-4 md:p-6 bg-blue-50 rounded-xl border border-blue-200">
+                    <h3 class="text-xl font-bold text-blue-800 mb-1">Calculated TDS Payable</h3>
+                    <p class="mt-1 text-blue-700 text-2xl"><strong>₹<span id="expectedTDS" class="font-extrabold">0.00</span></strong></p>
+                    
+                    <!-- Save TDS Calculation Section -->
+                    {% if session.user_id %}
+                    <div class="save-section mt-4">
+                        <p class="text-sm text-gray-600 mb-3">Save this TDS calculation to your profile?</p>
+                        <div class="flex space-x-3">
+                            <button id="save-calc-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center">
+                                <i class="fas fa-save mr-2"></i> Save Calculation
+                            </button>
+                        </div>
+                        <div id="save-calc-message" class="save-message" style="display:none"></div>
+                    </div>
+                    {% else %}
+                    <div class="login-prompt mt-4">
+                        <a href="/login" class="text-blue-600 font-medium">Login</a> to save your TDS calculations
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Fraud Detection Section -->
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center"><i class="fas fa-brain mr-3 text-red-600"></i> ML-Powered Fraud Detection</h2>
+                <p class="text-sm text-gray-500 mb-6">Input transaction data below for a sophisticated, real-time risk analysis by the Gemini model.</p>
+                <form id="tdsForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="deductor_pan" class="block text-sm font-medium text-gray-700">Deductor PAN</label>
+                            <!-- Added oninput for automatic uppercase conversion -->
+                            <input type="text" id="deductor_pan" name="deductor_pan" required maxlength="10" placeholder="ABCDE1234F" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white uppercase" oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                        <div>
+                            <label for="deductee_pan" class="block text-sm font-medium text-gray-700">Deductee PAN</label>
+                            <!-- Added oninput for automatic uppercase conversion -->
+                            <input type="text" id="deductee_pan" name="deductee_pan" required maxlength="10" placeholder="PQRST9876G" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white uppercase" oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                        <div>
+                            <label for="payment_amount_fraud" class="block text-sm font-medium text-gray-700">Reported Payment Amount (₹)</label>
+                            <input type="number" id="payment_amount_fraud" name="payment_amount" step="0.01" required placeholder="100000" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white">
+                        </div>
+                        <div>
+                            <label for="tds_deducted" class="block text-sm font-medium text-gray-700">TDS Deducted (₹)</label>
+                            <input type="number" id="tds_deducted" name="tds_deducted" step="0.01" required placeholder="10000" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white">
+                        </div>
+                        <div>
+                            <label for="tds_rate" class="block text-sm font-medium text-gray-700">TDS Rate (%) Reported</label>
+                            <input type="number" id="tds_rate" name="tds_rate" step="0.01" required placeholder="e.g., 10.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white">
+                        </div>
+                        <div>
+                            <label for="tds_deposited" class="block text-sm font-medium text-gray-700">TDS Deposited (₹)</label>
+                            <input type="number" id="tds_deposited" name="tds_deposited" step="0.01" required placeholder="9950" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white">
+                        </div>
+                        <div>
+                            <label for="section_code" class="block text-sm font-medium text-gray-700">Section Code</label>
+                            <input type="text" id="section_code" name="section_code" required placeholder="e.g., 194J" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white uppercase">
+                        </div>
+                        <div>
+                            <label for="date_of_payment" class="block text-sm font-medium text-gray-700">Date of Payment</label>
+                            <input type="date" id="date_of_payment" name="date_of_payment" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 bg-white">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center pt-4">
+                        <button type="submit" id="predictBtn" class="bg-red-600 text-white px-8 py-3 rounded-full shadow-2xl hover:bg-red-700 transition-all font-extrabold flex items-center transform hover:scale-105">
+                            <i class="fas fa-fingerprint mr-2"></i>
+                            <span id="buttonText">Analyze Transaction for Risk</span>
+                            <i id="loadingSpinner" class="fa fa-spinner fa-spin ml-2 hidden"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- ML Results Display -->
+                <div id="results" class="hidden mt-8 p-6 md:p-8 rounded-2xl shadow-inner transition-all duration-500">
+                    <h3 class="text-xl font-bold mb-3 flex items-center justify-center">
+                        <i class="fas fa-microchip mr-2"></i> Risk Assessment
+                    </h3>
+                    <div id="fraudCheck" class="text-center font-extrabold text-2xl p-4 rounded-xl mb-3"></div>
+                    <p id="fraudMessage" class="text-center text-md font-medium text-gray-600 mb-4"></p>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <h4 class="font-semibold text-lg text-gray-700 mb-2">Detailed Findings:</h4>
+                        <ul id="fraudReasonsList" class="list-disc list-inside space-y-1 pl-4 text-sm"></ul>
+                    </div>
+
+                    <!-- Save Fraud Detection Section -->
+                    {% if session.user_id %}
+                    <div class="save-section mt-6">
+                        <p class="text-sm text-gray-600 mb-3">Save this fraud detection result to your profile?</p>
+                        <div class="flex space-x-3">
+                            <button id="save-fraud-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center">
+                                <i class="fas fa-save mr-2"></i> Save Fraud Detection
+                            </button>
+                        </div>
+                        <div id="save-fraud-message" class="save-message" style="display:none"></div>
+                    </div>
+                    {% else %}
+                    <div class="login-prompt mt-6">
+                        <a href="/login" class="text-blue-600 font-medium">Login</a> to save your fraud detection results
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div id="errorMessage" class="hidden mt-4 p-4 bg-red-100 rounded-xl text-red-700 border border-red-400 font-medium"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Simple Alert Modal -->
+    <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-md w-11/12 relative transform scale-100 transition-transform duration-300">
+            <span class="absolute top-2 right-2 text-gray-500 hover:text-red-500 cursor-pointer text-2xl font-bold" onclick="document.getElementById('alertModal').classList.add('hidden')">&times;</span>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-3"></i>
+                <p id="alertMessage" class="text-lg font-medium text-gray-700 text-center mb-4"></p>
+                <button onclick="document.getElementById('alertModal').classList.add('hidden')" class="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-colors shadow-md">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global utility function for displaying modal messages
+        function showModal(message) {
+            const alertMessage = document.getElementById('alertMessage');
+            const alertModal = document.getElementById('alertModal');
+            alertMessage.textContent = message;
+            alertModal.classList.remove('hidden');
+        }
+
+        // Global utility function for showing save messages
+        function showSaveMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            element.className = `save-message save-${type}`;
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        /**
+         * Validates an Indian PAN number format: XXXXXNNNNX (5 letters, 4 numbers, 1 letter).
+         * @param {string} pan The PAN string to validate.
+         * @returns {boolean} True if valid, false otherwise.
+         */
+        function isValidPan(pan) {
+            // Regex for 5 letters (A-Z), 4 numbers (0-9), 1 letter (A-Z)
+            const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+            return panRegex.test(pan);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tdsCalculatorForm = document.getElementById('tdsCalculatorForm');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const calcResultsDiv = document.getElementById('calcResults');
+            const expectedTDS = document.getElementById('expectedTDS');
+            const saveCalcBtn = document.getElementById('save-calc-btn');
+            const saveFraudBtn = document.getElementById('save-fraud-btn');
+            
+            const tdsForm = document.getElementById('tdsForm');
+            const deductorPanInput = document.getElementById('deductor_pan');
+            const deducteePanInput = document.getElementById('deductee_pan');
+            const predictBtn = document.getElementById('predictBtn');
+            const buttonText = document.getElementById('buttonText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const resultsDiv = document.getElementById('results');
+            const fraudCheckDiv = document.getElementById('fraudCheck');
+            const fraudMessageDiv = document.getElementById('fraudMessage');
+            const fraudReasonsList = document.getElementById('fraudReasonsList');
+            const errorMessageDiv = document.getElementById('errorMessage');
+
+            let currentCalculation = null;
+            let currentFraudData = null;
+
+            // --- Simplified TDS Rates (for Calculator) ---
+            const tdsRates = {
+                '194J': { Individual: 10, Company: 10, 'Partnership Firm': 10, Others: 10 },
+                '194C': { Individual: 1, 'Partnership Firm': 1, Company: 2, Others: 2 },
+                '194I': { All: 10 }, 
+                '194A': { All: 10 },
+                '194H': { All: 5 },
+                '194': { All: 10 },
+            };
+
+            // --- TDS Calculator Logic ---
+            calculateBtn.addEventListener('click', () => {
+                const recipientType = document.getElementById('recipient_type').value;
+                const natureOfPayment = document.getElementById('nature_of_payment').value;
+                const paymentAmount = parseFloat(document.getElementById('calc_payment_amount').value);
+
+                if (!recipientType || !natureOfPayment || isNaN(paymentAmount) || paymentAmount <= 0) {
+                    showModal('Please fill all calculator fields with valid payment amount.');
+                    calcResultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                const sectionRates = tdsRates[natureOfPayment];
+                let rate = 0;
+                let effectiveType = recipientType;
+
+                // Simple grouping for rate determination
+                if (recipientType === 'Individual' || recipientType === 'HUF') {
+                    effectiveType = 'Individual';
+                } else if (recipientType === 'Partnership Firm' || recipientType === 'LLP') {
+                    effectiveType = 'Partnership Firm';
+                }
+
+                if (sectionRates.All !== undefined) {
+                    rate = sectionRates.All;
+                } else if (sectionRates[effectiveType] !== undefined) {
+                    rate = sectionRates[effectiveType];
+                } else {
+                    rate = 10; // Default fallback
+                }
+
+                const calculatedTDS = (paymentAmount * (rate / 100)).toFixed(2);
+                expectedTDS.textContent = parseFloat(calculatedTDS).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                calcResultsDiv.classList.remove('hidden');
+                
+                // Store calculation data for saving
+                currentCalculation = {
+                    recipient_type: recipientType,
+                    nature_of_payment: natureOfPayment,
+                    payment_amount: paymentAmount,
+                    tds_rate: rate,
+                    calculated_tds: calculatedTDS
+                };
+            });
+
+            // Save TDS Calculation
+            if (saveCalcBtn) {
+                saveCalcBtn.addEventListener('click', async () => {
+                    if (!currentCalculation) {
+                        showSaveMessage('save-calc-message', 'Please perform a calculation first', 'error');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/save_calculation', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                type: 'tds_calculation',
+                                input_data: {
+                                    recipient_type: currentCalculation.recipient_type,
+                                    nature_of_payment: currentCalculation.nature_of_payment,
+                                    payment_amount: currentCalculation.payment_amount,
+                                    tds_rate: currentCalculation.tds_rate
+                                },
+                                result: {
+                                    calculated_tds: currentCalculation.calculated_tds
+                                }
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            showSaveMessage('save-calc-message', '✓ TDS calculation saved to your dashboard!', 'success');
+                        } else {
+                            showSaveMessage('save-calc-message', '✗ Failed to save calculation', 'error');
+                        }
+                    } catch (error) {
+                        showSaveMessage('save-calc-message', '✗ Error saving calculation', 'error');
+                    }
+                });
+            }
+
+            // Save Fraud Detection Result
+            if (saveFraudBtn) {
+                saveFraudBtn.addEventListener('click', async () => {
+                    if (!currentFraudData) {
+                        showSaveMessage('save-fraud-message', 'Please run a fraud detection first', 'error');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/save_calculation', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                type: 'tds_fraud_detection',
+                                input_data: currentFraudData.input_data,
+                                result: {
+                                    risk_level: currentFraudData.risk_level,
+                                    prediction: currentFraudData.prediction,
+                                    summary: currentFraudData.summary,
+                                    reasons: currentFraudData.reasons
+                                }
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            showSaveMessage('save-fraud-message', '✓ Fraud detection saved to your dashboard!', 'success');
+                        } else {
+                            showSaveMessage('save-fraud-message', '✗ Failed to save fraud detection', 'error');
+                        }
+                    } catch (error) {
+                        showSaveMessage('save-fraud-message', '✗ Error saving fraud detection', 'error');
+                    }
+                });
+            }
+
+            // --- Gemini API Call for ML Fraud Detection ---
+
+            const API_KEY = "";
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            const MAX_RETRIES = 5;
+            
+            // System instruction defining the model's persona and task
+            const SYSTEM_PROMPT = `You are a sophisticated AI Tax Fraud Analyst specializing in Indian TDS (Tax Deducted at Source) regulations. Analyze the provided TDS transaction data carefully. 
+            Evaluate the following for risk:
+            1. **Rate Compliance**: Does TDS Deducted amount match the Reported TDS Rate against the Payment Amount?
+            2. **Deposit Integrity**: Is there a significant mismatch between TDS Deducted and TDS Deposited?
+            3. **Data Anomalies**: Are PAN formats correct? Are amounts suspicious (e.g., extremely large or round numbers, or zero TDS)?
+            
+            Determine the risk level as HIGH_RISK, MEDIUM_RISK, or LOW_RISK. Provide a concise summary and a list of 1 to 3 specific findings.
+            
+            Respond ONLY with a single JSON object that strictly adheres to the provided schema.`;
+
+            const RESPONSE_SCHEMA = {
+                type: "OBJECT",
+                properties: {
+                    "prediction": { "type": "STRING", "description": "The risk level: HIGH_RISK, MEDIUM_RISK, or LOW_RISK." },
+                    "summary": { "type": "STRING", "description": "A concise, single-sentence summary of the finding." },
+                    "reasons": {
+                        "type": "ARRAY",
+                        "items": { "type": "STRING" },
+                        "description": "A list of 1 to 3 specific reasons or data anomalies that led to the risk assessment."
+                    }
+                },
+                "required": ["prediction", "summary", "reasons"]
+            };
+
+            // Function to handle API calls with exponential backoff
+            async function callGeminiApi(payload, attempt = 0) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 429 && attempt < MAX_RETRIES) {
+                            const delay = Math.pow(2, attempt) * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            return callGeminiApi(payload, attempt + 1);
+                        }
+                        const errorBody = await response.text();
+                        throw new Error(`API returned status ${response.status}: ${errorBody.substring(0, 100)}...`);
+                    }
+
+                    const result = await response.json();
+                    
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        const jsonText = candidate.content.parts[0].text;
+                        // The model sometimes wraps the JSON in markdown blocks, we attempt to clean this up.
+                        let cleanedJsonText = jsonText.replace(/^```json\s*|```\s*$/g, '').trim();
+
+                        return JSON.parse(cleanedJsonText);
+                    }
+                    throw new Error("Invalid response structure or empty content from the model.");
+
+                } catch (error) {
+                    // Log the detailed error but throw a friendly message for the user
+                    console.error("Gemini API call failed:", error);
+                    throw new Error("Failed to get a valid ML prediction response. Check console for details.");
+                }
+            }
+
+
+            // --- Fraud Detection Submission Handler ---
+            tdsForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                // 1. Client-side Validation (PAN Format Check)
+                const deductorPan = deductorPanInput.value.toUpperCase();
+                const deducteePan = deducteePanInput.value.toUpperCase();
+                
+                if (!isValidPan(deductorPan)) {
+                    showModal('Deductor PAN is invalid. Please use the format ABCDE1234F (5 letters, 4 numbers, 1 letter).');
+                    return;
+                }
+                if (!isValidPan(deducteePan)) {
+                    showModal('Deductee PAN is invalid. Please use the format ABCDE1234F (5 letters, 4 numbers, 1 letter).');
+                    return;
+                }
+
+                const formData = new FormData(tdsForm);
+                const formObject = Object.fromEntries(formData.entries());
+                
+                // Show loading state
+                predictBtn.disabled = true;
+                buttonText.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                resultsDiv.classList.add('hidden');
+                errorMessageDiv.classList.add('hidden');
+                fraudReasonsList.innerHTML = '';
+                
+                // Prepare the payload for the Gemini API
+                const payload = {
+                    contents: [{ parts: [{ text: JSON.stringify(formObject) }] }],
+                    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: RESPONSE_SCHEMA
+                    }
+                };
+
+                try {
+                    const predictionResult = await callGeminiApi(payload);
+                    
+                    const { prediction, summary, reasons } = predictionResult;
+                    
+                    if (!prediction || !summary || !reasons) {
+                        throw new Error("ML model returned incomplete data.");
+                    }
+
+                    // Determine CSS class based on prediction
+                    let colorClass = 'risk-low';
+                    if (prediction === 'MEDIUM_RISK') {
+                        colorClass = 'risk-medium';
+                    } else if (prediction === 'HIGH_RISK') {
+                        colorClass = 'risk-high';
+                    }
+
+                    // Update Results Display
+                    fraudCheckDiv.className = `text-center font-extrabold text-2xl p-4 rounded-xl mb-3 ${colorClass}`;
+                    fraudCheckDiv.textContent = prediction.replace('_', ' ');
+                    
+                    fraudMessageDiv.textContent = summary;
+                    
+                    reasons.forEach(reason => {
+                        const li = document.createElement('li');
+                        li.textContent = reason;
+                        fraudReasonsList.appendChild(li);
+                    });
+                    
+                    // Style the main results div based on risk
+                    resultsDiv.classList.remove('risk-low', 'risk-medium', 'risk-high', 'bg-red-100', 'bg-yellow-100', 'bg-green-100');
+                    resultsDiv.classList.add(colorClass);
+                    resultsDiv.classList.remove('hidden');
+                    
+                    // Store fraud detection data for saving
+                    currentFraudData = {
+                        input_data: formObject,
+                        risk_level: prediction,
+                        prediction: prediction,
+                        summary: summary,
+                        reasons: reasons
+                    };
+                    
+                } catch (error) {
+                    console.error("Prediction failed:", error.message);
+                    errorMessageDiv.textContent = `Analysis Failed: ${error.message}`;
+                    errorMessageDiv.classList.remove('hidden');
+                } finally {
+                    // Reset button state
+                    predictBtn.disabled = false;
+                    buttonText.classList.remove('hidden');
+                    loadingSpinner.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

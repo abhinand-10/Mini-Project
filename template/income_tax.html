@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Tax Calculator</title>
+    <script src="https://kit.fontawesome.com/4a148a2491.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .save-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 2px dashed #d1d5db;
+            border-radius: 6px;
+            background-color: #f9fafb;
+        }
+        .save-message {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .save-success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .save-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .login-prompt {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 0.75rem;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" class="flex items-center text-blue-600 font-bold text-lg rounded-full px-3 py-1 bg-blue-100 transition-transform transform hover:scale-105">
+                <i class="fas fa-chart-line mr-2"></i>
+                <span>Tax-Vision</span>
+            </a>
+            <div class="flex space-x-4 items-center">
+                <a href="/gst" class="text-gray-600 hover:text-blue-600 transition-colors">GST Fraud</a>
+                <a href="/tds" class="text-gray-600 hover:text-blue-600 transition-colors">TDS Fraud</a>
+                <a href="/income_tax" class="text-blue-600 font-bold border-b-2 border-blue-600">Income Tax</a>
+                <a href="/tax_prediction" class="text-gray-600 hover:text-blue-600 transition-colors">Tax Prediction</a>
+                {% if session.user_id %}
+                    <a href="/dashboard" class="text-blue-600 font-medium flex items-center">
+                        <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
+                    </a>
+                    <span class="text-gray-600">Hello, {{ session.username }}</span>
+                    <a href="/logout" class="text-gray-600 hover:text-blue-600 transition-colors">Logout</a>
+                {% else %}
+                    <a href="/login" class="text-gray-600 hover:text-blue-600 transition-colors">Login</a>
+                    <a href="/signup" class="bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-6 border border-gray-200">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Income Tax Calculator</h2>
+                <p class="text-gray-500">Compare Old vs New Tax Regime and choose the best option for you</p>
+            </div>
+            
+            <form method="POST" class="space-y-6" id="taxForm">
+                <!-- Personal Details -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="assesment_year" class="block text-sm font-medium text-gray-700">Assessment Year</label>
+                        <select id="assesment_year" name="assesment_year" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                            <option value="2025-26">2025-26</option>
+                            <option value="2024-25">2024-25</option>
+                            <option value="2023-24">2023-24</option>
+                            <option value="2022-23">2022-23</option>
+                            <option value="2021-22">2021-22</option>
+                            <option value="2020-21">2020-21</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="age_category" class="block text-sm font-medium text-gray-700">Age Category</label>
+                        <select id="age_category" name="age_category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                            <option value="general">Below 60</option>
+                            <option value="senior">60-80</option>
+                            <option value="super_senior">Above 80</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="residential_status" class="block text-sm font-medium text-gray-700">Residential Status</label>
+                        <select id="residential_status" name="residential_status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                            <option value="resident">Resident</option>
+                            <option value="ordinary_resident">Ordinary Resident</option>
+                            <option value="non_resident">Non-Resident</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Income Inputs -->
+                <div>
+                    <h3 class="text-xl font-semibold mt-4 mb-4 text-gray-800 flex items-center">
+                        <i class="fas fa-money-bill-wave mr-2 text-green-600"></i>
+                        Income Details
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="gross_salary" class="block text-sm font-medium text-gray-700">Gross Salary Income</label>
+                            <input type="number" id="gross_salary" name="gross_salary" placeholder="Gross Salary Income" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="income_other" class="block text-sm font-medium text-gray-700">Income from Other Sources</label>
+                            <input type="number" id="income_other" name="income_other" placeholder="Income from Other Sources" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="income_interest" class="block text-sm font-medium text-gray-700">Income from Interest</label>
+                            <input type="number" id="income_interest" name="income_interest" placeholder="Income from Interest" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="rental_income" class="block text-sm font-medium text-gray-700">Rental Income</label>
+                            <input type="number" id="rental_income" name="rental_income" placeholder="Rental Income" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="home_loan_self" class="block text-sm font-medium text-gray-700">Home Loan Interest (Self-Occupied)</label>
+                            <input type="number" id="home_loan_self" name="home_loan_self" placeholder="Home Loan Interest (Self-Occupied)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="home_loan_letout" class="block text-sm font-medium text-gray-700">Home Loan Interest (Let-Out)</label>
+                            <input type="number" id="home_loan_letout" name="home_loan_letout" placeholder="Home Loan Interest (Let-Out)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deductions -->
+                <div>
+                    <h3 class="text-xl font-semibold mt-4 mb-4 text-gray-800 flex items-center">
+                        <i class="fas fa-receipt mr-2 text-blue-600"></i>
+                        Deductions
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="deduction_80C" class="block text-sm font-medium text-gray-700">80C Deduction</label>
+                            <input type="number" id="deduction_80C" name="deduction_80C" placeholder="80C Deduction" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="contribution" class="block text-sm font-medium text-gray-700">Contribution (EPF/PPF)</label>
+                            <input type="number" id="contribution" name="contribution" placeholder="Contribution (EPF/PPF)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="medical" class="block text-sm font-medium text-gray-700">Medical Insurance Premium</label>
+                            <input type="number" id="medical" name="medical" placeholder="Medical Insurance Premium" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="donation" class="block text-sm font-medium text-gray-700">Donation</label>
+                            <input type="number" id="donation" name="donation" placeholder="Donation" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="edu_loan" class="block text-sm font-medium text-gray-700">Education Loan Interest</label>
+                            <input type="number" id="edu_loan" name="edu_loan" placeholder="Education Loan Interest" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="savings_interest" class="block text-sm font-medium text-gray-700">Savings Account Interest</label>
+                            <input type="number" id="savings_interest" name="savings_interest" placeholder="Savings Account Interest" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HRA Exemption -->
+                <div>
+                    <h3 class="text-xl font-semibold mt-4 mb-4 text-gray-800 flex items-center">
+                        <i class="fas fa-home mr-2 text-purple-600"></i>
+                        HRA Exemption
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="basic_salary" class="block text-sm font-medium text-gray-700">Basic Salary</label>
+                            <input type="number" id="basic_salary" name="basic_salary" placeholder="Basic Salary" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="da_salary" class="block text-sm font-medium text-gray-700">DA Salary</label>
+                            <input type="number" id="da_salary" name="da_salary" placeholder="DA Salary" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="hra_received" class="block text-sm font-medium text-gray-700">HRA Received</label>
+                            <input type="number" id="hra_received" name="hra_received" placeholder="HRA Received" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                        <div>
+                            <label for="rent_paid" class="block text-sm font-medium text-gray-700">Rent Paid</label>
+                            <input type="number" id="rent_paid" name="rent_paid" placeholder="Rent Paid" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-start mt-6">
+                    <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors font-semibold flex items-center transform hover:scale-105">
+                        <i class="fas fa-calculator mr-2"></i>
+                        Calculate Tax
+                    </button>
+                </div>
+            </form>
+
+            {% if old_tax is not none and new_tax is not none %}
+            <div class="mt-8">
+                <!-- Quick Summary Card -->
+                <div class="highlight rounded-xl p-6 mb-6 shadow-lg">
+                    <h3 class="text-2xl font-bold text-white mb-4 text-center">Tax Calculation Summary</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                            <p class="text-white text-sm">Old Regime Tax</p>
+                            <p class="text-white text-2xl font-bold">₹{{ "%.2f"|format(old_tax) }}</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                            <p class="text-white text-sm">New Regime Tax</p>
+                            <p class="text-white text-2xl font-bold">₹{{ "%.2f"|format(new_tax) }}</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                            <p class="text-white text-sm">Recommended</p>
+                            <p class="text-white text-xl font-bold">{{ best_regime }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Tax Breakdown -->
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Detailed Tax Breakdown</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto rounded-lg">
+                            <thead class="bg-blue-600 text-white">
+                                <tr>
+                                    <th class="py-3 px-4 text-left rounded-tl-lg">Component</th>
+                                    <th class="py-3 px-4 text-left">Old Regime (₹)</th>
+                                    <th class="py-3 px-4 text-left rounded-tr-lg">New Regime (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="py-3 px-4">Gross Income</td>
+                                    <td class="py-3 px-4">{{ gross_income | default(0) | round(2) }}</td>
+                                    <td class="py-3 px-4">{{ gross_income | default(0) | round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">HRA Exemption</td>
+                                    <td class="py-3 px-4">{{ hra_exemption | default(0) | round(2) }}</td>
+                                    <td class="py-3 px-4">{{ hra_exemption | default(0) | round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">Total Deductions</td>
+                                    <td class="py-3 px-4">{{ total_deductions | default(0) | round(2) }}</td>
+                                    <td class="py-3 px-4">{{ total_deductions_new | default(0) | round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">Taxable Income</td>
+                                    <td class="py-3 px-4">{{ taxable_income_old | default(0) | round(2) }}</td>
+                                    <td class="py-3 px-4">{{ taxable_income_new | default(0) | round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">Tax Payable (Before Surcharge/Cess)</td>
+                                    <td class="py-3 px-4">{{ tax_before_surcharge_old | default(0) | round(2) }}</td>
+                                    <td class="py-3 px-4">{{ tax_before_surcharge_new | default(0) | round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">Surcharge</td>
+                                    <td class="py-3 px-4">{{ surcharge_old | default(0) | round(2) }}</td>
+                                    <td class="py-3 px-4">{{ surcharge_new | default(0) | round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">Health & Education Cess (4%)</td>
+                                    <td class="py-3 px-4">{{ cess_old | default(0) | round(2) }}</td>
+                                    <td class="py-3 px-4">{{ cess_new | default(0) | round(2) }}</td>
+                                </tr>
+                                <tr class="font-bold bg-blue-50">
+                                    <td class="py-3 px-4">Total Tax Payable</td>
+                                    <td class="py-3 px-4 text-blue-600">{{ old_tax | default(0) | round(2) }}</td>
+                                    <td class="py-3 px-4 text-blue-600">{{ new_tax | default(0) | round(2) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Save Calculation Section -->
+                    {% if session.user_id %}
+                    <div class="save-section mt-6">
+                        <p class="text-sm text-gray-600 mb-3 text-center">Save this tax calculation to your dashboard?</p>
+                        <div class="flex justify-center space-x-3">
+                            <button id="save-calculation-btn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center">
+                                <i class="fas fa-save mr-2"></i> Save Calculation
+                            </button>
+                        </div>
+                        <div id="save-calculation-message" class="save-message" style="display:none"></div>
+                    </div>
+                    {% else %}
+                    <div class="login-prompt mt-6">
+                        <a href="/login" class="text-blue-600 font-medium bg-white px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">Login</a> to save your tax calculations
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const saveCalculationBtn = document.getElementById('save-calculation-btn');
+            
+            // Save Calculation functionality
+            if (saveCalculationBtn) {
+                saveCalculationBtn.addEventListener('click', async () => {
+                    // Get form data
+                    const formData = new FormData(document.getElementById('taxForm'));
+                    const formObject = {};
+                    for (let [key, value] of formData.entries()) {
+                        formObject[key] = value;
+                    }
+
+                    try {
+                        const response = await fetch('/save_calculation', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                type: 'income_tax',
+                                input_data: {
+                                    assessment_year: formObject.assesment_year,
+                                    age_category: formObject.age_category,
+                                    residential_status: formObject.residential_status,
+                                    gross_salary: parseFloat(formObject.gross_salary || 0),
+                                    income_other: parseFloat(formObject.income_other || 0),
+                                    income_interest: parseFloat(formObject.income_interest || 0),
+                                    rental_income: parseFloat(formObject.rental_income || 0),
+                                    home_loan_self: parseFloat(formObject.home_loan_self || 0),
+                                    home_loan_letout: parseFloat(formObject.home_loan_letout || 0),
+                                    deduction_80C: parseFloat(formObject.deduction_80C || 0),
+                                    contribution: parseFloat(formObject.contribution || 0),
+                                    medical: parseFloat(formObject.medical || 0),
+                                    donation: parseFloat(formObject.donation || 0),
+                                    edu_loan: parseFloat(formObject.edu_loan || 0),
+                                    savings_interest: parseFloat(formObject.savings_interest || 0),
+                                    basic_salary: parseFloat(formObject.basic_salary || 0),
+                                    da_salary: parseFloat(formObject.da_salary || 0),
+                                    hra_received: parseFloat(formObject.hra_received || 0),
+                                    rent_paid: parseFloat(formObject.rent_paid || 0)
+                                },
+                                result: {
+                                    old_regime_tax: {{ old_tax | default(0) }},
+                                    new_regime_tax: {{ new_tax | default(0) }},
+                                    best_regime: "{{ best_regime | default('') }}",
+                                    gross_income: {{ gross_income | default(0) }},
+                                    taxable_income_old: {{ taxable_income_old | default(0) }},
+                                    taxable_income_new: {{ taxable_income_new | default(0) }},
+                                    total_deductions: {{ total_deductions | default(0) }}
+                                }
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            showSaveMessage('save-calculation-message', '✓ Tax calculation saved to your dashboard!', 'success');
+                        } else {
+                            showSaveMessage('save-calculation-message', '✗ Failed to save calculation', 'error');
+                        }
+                    } catch (error) {
+                        showSaveMessage('save-calculation-message', '✗ Error saving calculation', 'error');
+                    }
+                });
+            }
+
+            // Global utility function for showing save messages
+            function showSaveMessage(elementId, message, type) {
+                const element = document.getElementById(elementId);
+                element.textContent = message;
+                element.style.display = 'block';
+                element.className = `save-message save-${type}`;
+                
+                // Hide message after 5 seconds
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 5000);
+            }
+
+            // Set current assessment year as default
+            const currentYear = new Date().getFullYear();
+            document.getElementById('assesment_year').value = `${currentYear}-${currentYear + 1}`;
+        });
+    </script>
+</body>
+</html>

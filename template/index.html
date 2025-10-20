@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax & Fraud Analytics Home</title>
+    <script src="https://kit.fontawesome.com/4a148a2491.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #374151; /* gray-600 */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.body-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem; /* Equivalent to px-4 */
+}
+
+/* Navigation Bar */
+.navbar {
+    background: white;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+    padding: 1rem 1.5rem; /* py-4 px-6 */
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+@media (min-width: 768px) {
+    .navbar {
+        padding: 1rem 2.5rem; /* md:px-10 */
+    }
+}
+
+.navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* space-x-2 */
+    text-decoration: none;
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 700; /* font-bold */
+    color: #1f2937; /* text-gray-800 */
+}
+
+.logo-icon {
+    color: #4f46e5; /* text-indigo-600 */
+    font-size: 1.5rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1.5rem; /* space-x-6 */
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .nav-links {
+        gap: 2rem; /* md:space-x-8 */
+    }
+}
+
+.nav-link {
+    color: #6b7280; /* text-gray-600 */
+    font-weight: 500; /* font-medium */
+    text-decoration: none;
+    transition: transform 0.3s ease, color 0.3s ease; /* transition-transform duration-300 */
+    padding: 0.5rem 0;
+}
+
+.nav-link:hover {
+    color: #4f46e5; /* indigo-600 on hover */
+    transform: translateY(-1px);
+}
+
+.nav-link-active {
+    color: #4f46e5; /* text-indigo-600 */
+}
+
+.nav-link-button {
+    background: #4f46e5; /* bg-indigo-600 */
+    color: white;
+    padding: 0.5rem 1rem; /* px-4 py-2 */
+    border-radius: 9999px; /* rounded-full */
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.nav-link-button:hover {
+    background: #4338ca; /* hover:bg-indigo-700 */
+    transform: translateY(-1px);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.user-welcome {
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 3rem 1rem; /* py-12 px-4 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+@media (min-width: 768px) {
+    .main-content {
+        padding: 5rem 1rem; /* md:py-20 */
+    }
+}
+
+.hero-content {
+    width: 100%;
+    max-width: 1280px; /* max-w-5xl */
+    text-align: center;
+}
+
+.hero-title {
+    font-size: 2.5rem; /* text-4xl */
+    font-weight: 800; /* font-extrabold */
+    color: #1f2937; /* text-gray-800 */
+    line-height: 1.2; /* leading-tight */
+    margin-bottom: 1.5rem; /* mb-4 */
+    margin: 0 auto;
+    max-width: 100%;
+}
+
+@media (min-width: 768px) {
+    .hero-title {
+        font-size: 3rem; /* md:text-5xl */
+    }
+}
+
+@media (min-width: 1024px) {
+    .hero-title {
+        font-size: 3.75rem; /* lg:text-6xl */
+    }
+}
+
+.hero-subtitle {
+    font-size: 1.125rem; /* text-lg */
+    color: #6b7280; /* text-gray-600 */
+    margin-bottom: 3rem; /* mb-12 */
+    max-width: 48rem; /* max-w-3xl */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 768px) {
+    .hero-subtitle {
+        font-size: 1.25rem; /* md:text-xl */
+    }
+}
+
+.welcome-message {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-message h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-message p {
+    opacity: 0.9;
+}
+
+/* Cards Grid */
+.cards-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* grid-cols-1 */
+    gap: 2rem; /* gap-8 */
+    margin-top: 2rem;
+}
+
+@media (min-width: 768px) {
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr); /* md:grid-cols-2 */
+    }
+}
+
+@media (min-width: 1024px) {
+    .cards-grid {
+        grid-template-columns: repeat(4, 1fr); /* lg:grid-cols-4 */
+    }
+}
+
+.card {
+    display: block;
+    padding: 1.5rem; /* p-6 */
+    background: white;
+    border-radius: 1rem; /* rounded-2xl */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+    border-top: 4px solid; /* border-t-4 */
+    text-decoration: none;
+    transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    color: inherit;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.card-gst {
+    border-top-color: #4f46e5; /* border-indigo-600 */
+}
+
+.card-gst:hover {
+    border-top-color: #4338ca; /* hover:border-indigo-700 */
+}
+
+.card-gst .card-icon {
+    color: #4f46e5;
+}
+
+.card-tds {
+    border-top-color: #10b981; /* border-emerald-500 */
+}
+
+.card-tds:hover {
+    border-top-color: #059669; /* hover:border-emerald-600 */
+}
+
+.card-tds .card-icon {
+    color: #10b981;
+}
+
+.card-income {
+    border-top-color: #f59e0b; /* border-orange-500 */
+}
+
+.card-income:hover {
+    border-top-color: #d97706; /* hover:border-orange-600 */
+}
+
+.card-income .card-icon {
+    color: #f59e0b;
+}
+
+.card-prediction {
+    border-top-color: #0ea5e9; /* border-sky-500 */
+}
+
+.card-prediction:hover {
+    border-top-color: #0284c7; /* hover:border-sky-600 */
+}
+
+.card-prediction .card-icon {
+    color: #0ea5e9;
+}
+
+.card-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem; /* mb-4 */
+    font-size: 2.5rem; /* text-4xl */
+}
+
+.card-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600; /* font-semibold */
+    color: #1f2937; /* text-gray-800 */
+    margin-bottom: 0.5rem; /* mb-2 */
+    text-align: center;
+}
+
+.card-text {
+    font-size: 0.875rem; /* text-sm */
+    color: #9ca3af; /* text-gray-500 */
+    text-align: center;
+}
+
+/* Info Section */
+.info-section {
+    background: #f3f4f6; /* bg-gray-100 */
+    padding: 4rem 0; /* py-16 */
+}
+
+.info-content {
+    max-width: 48rem; /* max-w-3xl */
+    text-align: center;
+}
+
+.section-title {
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: 700; /* font-bold */
+    color: #1f2937; /* text-gray-800 */
+    margin-bottom: 1.5rem; /* mb-6 */
+    text-align: center;
+}
+
+.section-text {
+    color: #6b7280; /* text-gray-600 */
+    margin-bottom: 1rem; /* mb-4 */
+    text-align: left;
+    leading-relaxed: 1.6;
+}
+
+.section-text:last-child {
+    margin-bottom: 0;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Staggered delays for hero elements */
+.hero-title {
+    animation-delay: 0s;
+}
+
+.hero-subtitle {
+    animation-delay: 0.2s;
+}
+
+.cards-grid {
+    animation-delay: 0.4s;
+}
+
+/* Focus states for accessibility */
+.nav-link:focus,
+.card:focus,
+.logo:focus {
+    outline: 2px solid #4f46e5;
+    outline-offset: 2px;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 767px) {
+    .nav-links {
+        flex-direction: column;
+        gap: 1rem;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        display: none; /* Hidden by default on mobile; add JS for toggle if needed */
+    }
+
+    .nav-links.active {
+        display: flex; /* Use JS to add 'active' class for mobile menu */
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .card {
+        padding: 1.25rem;
+    }
+
+    .info-section {
+        padding: 3rem 0;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .user-info {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+}
+
+    </style>
+</head>
+<body class="body-layout">
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line logo-icon"></i>
+                <span>Tax-Vision</span>
+            </a>
+            <div class="nav-links">
+                <a href="/gst" class="nav-link">GST Fraud</a>
+                <a href="/tds" class="nav-link">TDS Fraud</a>
+                <a href="/income_tax" class="nav-link">Income Tax</a>
+                <a href="/tax_prediction" class="nav-link">Tax Prediction</a>
+                
+                {% if session.user_id %}
+                    <a href="/dashboard" class="nav-link nav-link-active">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <div class="user-info">
+                        <span class="user-welcome">Hello, {{ session.username }}</span>
+                        <a href="/logout" class="nav-link">Logout</a>
+                    </div>
+                {% else %}
+                    <a href="/login" class="nav-link">Login</a>
+                    <a href="/signup" class="nav-link nav-link-button">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="hero-content">
+            {% if session.user_id %}
+            <div class="welcome-message fade-in">
+                <h2>Welcome back, {{ session.username }}! 👋</h2>
+                <p>Ready to continue managing your taxes with our intelligent tools?</p>
+            </div>
+            {% endif %}
+
+            <h1 class="hero-title fade-in">
+                {% if session.user_id %}
+                    Intelligent Tax & Financial Analytics
+                {% else %}
+                    Intelligent Tax & Financial Analytics
+                {% endif %}
+            </h1>
+            
+            <p class="hero-subtitle fade-in">
+                {% if session.user_id %}
+                    Continue leveraging cutting-edge models to detect fraud, calculate taxes, and predict future liabilities.
+                {% else %}
+                    Leverage cutting-edge models to detect fraud, calculate taxes, and predict future liabilities. Your trusted platform for financial clarity.
+                {% endif %}
+            </p>
+
+            <div class="cards-grid fade-in">
+                
+                <!-- GST Card -->
+                <a href="/gst" class="card card-gst">
+                    <div class="card-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <h2 class="card-title">GST Calculator & Fraud Detection</h2>
+                    <p class="card-text">
+                        {% if session.user_id %}
+                            Calculate GST and detect fraudulent patterns with AI
+                        {% else %}
+                            Analyze GST records to identify suspicious patterns and potential fraud
+                        {% endif %}
+                    </p>
+                </a>
+                
+                <!-- TDS Card -->
+                <a href="/tds" class="card card-tds">
+                    <div class="card-icon">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <h2 class="card-title">TDS Management & Fraud Check</h2>
+                    <p class="card-text">
+                        {% if session.user_id %}
+                            Calculate TDS and detect transaction anomalies
+                        {% else %}
+                            Detect anomalies in TDS transactions to prevent fraudulent activity
+                        {% endif %}
+                    </p>
+                </a>
+                
+                <!-- Income Tax Card -->
+                <a href="/income_tax" class="card card-income">
+                    <div class="card-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h2 class="card-title">Income Tax Calculator</h2>
+                    <p class="card-text">
+                        {% if session.user_id %}
+                            Compare old vs new regime and save your calculations
+                        {% else %}
+                            Calculate your income tax under both regimes to find the best option
+                        {% endif %}
+                    </p>
+                </a>
+                
+                <!-- Tax Prediction Card -->
+                <a href="/tax_prediction" class="card card-prediction">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h2 class="card-title">AI Tax Prediction</h2>
+                    <p class="card-text">
+                        {% if session.user_id %}
+                            Predict future tax liabilities using machine learning
+                        {% else %}
+                            Predict future tax liabilities based on your financial data
+                        {% endif %}
+                    </p>
+                </a>
+                
+            </div>
+
+            {% if not session.user_id %}
+            <div class="fade-in" style="margin-top: 3rem; text-align: center;">
+                <p style="color: #6b7280; margin-bottom: 1rem;">Ready to get started?</p>
+                <a href="/signup" class="nav-link-button" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-rocket"></i>
+                    Create Free Account
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Additional Content Section -->
+    <section class="info-section">
+        <div class="container info-content">
+            <h2 class="section-title">
+                {% if session.user_id %}
+                    Maximize Your Tax Efficiency
+                {% else %}
+                    Understanding the Tax Landscape
+                {% endif %}
+            </h2>
+            
+            {% if session.user_id %}
+            <p class="section-text">Welcome to your centralized tax management hub! As a registered user, you now have access to powerful features that go beyond basic calculations. Save your tax scenarios, track your financial decisions, and build a comprehensive history of your tax planning strategies.</p>
+            <p class="section-text">Your dashboard keeps all your calculations organized and accessible. Whether you're comparing tax regimes, detecting potential fraud, or predicting future liabilities, every calculation is automatically saved for your reference. This historical data becomes invaluable for year-over-year comparisons and strategic financial planning.</p>
+            <p class="section-text">Take advantage of our machine learning models that learn from your data patterns to provide increasingly accurate predictions and insights. The more you use our tools, the smarter they become at helping you optimize your tax strategy and ensure compliance.</p>
+            {% else %}
+            <p class="section-text">In today's complex financial world, navigating tax regulations can be challenging for both individuals and businesses. The landscape is constantly evolving, with new rules, exemptions, and compliance requirements emerging each year. Accurately managing your tax obligations is not just a legal necessity but a critical component of sound financial health. Failure to comply can lead to severe penalties, audits, and loss of financial credibility.</p>
+            <p class="section-text">Our platform simplifies this complexity by providing powerful tools to help you stay compliant and make informed financial decisions. From automated fraud detection using advanced machine learning models to accurate tax liability calculations, we provide the insights you need to confidently manage your finances. Our goal is to empower you with the right information, ensuring transparency and reducing the risk of non-compliance.</p>
+            <p class="section-text">By leveraging our analytics tools, you can not only meet your current tax obligations but also strategically plan for the future. Understanding your financial data helps you identify opportunities for optimization and ensure your financial records are clean, transparent, and secure.</p>
+            {% endif %}
+        </div>
+    </section>
+
+</body>
+</html>
